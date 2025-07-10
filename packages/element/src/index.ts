@@ -74,6 +74,7 @@ export const clearElementsForLocalStorage = (
 ) => _clearElements(elements);
 
 export * from "./align";
+export * from "./anchorPoints";
 export * from "./binding";
 export * from "./bounds";
 export * from "./collision";

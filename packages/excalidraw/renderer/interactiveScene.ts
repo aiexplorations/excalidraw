@@ -31,6 +31,7 @@ import {
   isLinearElement,
   isLineElement,
   isTextElement,
+  isBindableElement,
 } from "@excalidraw/element";
 
 import { renderSelectionElement } from "@excalidraw/element";
@@ -48,6 +49,8 @@ import type {
   SuggestedBinding,
   SuggestedPointBinding,
 } from "@excalidraw/element";
+
+import { getElementAnchorPoints } from "@excalidraw/element";
 
 import type {
   TransformHandles,
@@ -349,6 +352,36 @@ const renderBindingHighlight = (
   context.translate(appState.scrollX, appState.scrollY);
   renderHighlight(context, suggestedBinding as any, elementsMap, appState.zoom);
 
+  context.restore();
+};
+
+const renderAnchorPoints = (
+  context: CanvasRenderingContext2D,
+  appState: InteractiveCanvasAppState,
+  element: ExcalidrawBindableElement,
+  elementsMap: ElementsMap,
+) => {
+  const anchorPoints = getElementAnchorPoints(element);
+  const anchorSize = 4 / appState.zoom.value; // Small circles that scale with zoom
+  
+  context.save();
+  context.translate(appState.scrollX, appState.scrollY);
+  
+  // Style for anchor points
+  context.fillStyle = "rgba(59, 130, 246, 0.8)"; // Blue color
+  context.strokeStyle = "rgba(255, 255, 255, 0.9)"; // White border
+  context.lineWidth = 1 / appState.zoom.value;
+  
+  anchorPoints.forEach((anchorPoint) => {
+    const [x, y] = anchorPoint.point;
+    
+    // Draw anchor point as a small circle
+    context.beginPath();
+    context.arc(x, y, anchorSize, 0, 2 * Math.PI);
+    context.fill();
+    context.stroke();
+  });
+  
   context.restore();
 };
 
@@ -817,6 +850,19 @@ const _renderInteractiveScene = ({
           suggestedBinding!,
           elementsMap,
         );
+        
+        // Render anchor points for suggested binding targets
+        if (!Array.isArray(suggestedBinding)) {
+          const bindableElement = suggestedBinding as ExcalidrawBindableElement;
+          if (bindableElement && isBindableElement(bindableElement)) {
+            renderAnchorPoints(
+              context,
+              appState,
+              bindableElement,
+              elementsMap,
+            );
+          }
+        }
       });
   }
 

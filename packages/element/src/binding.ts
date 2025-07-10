@@ -59,6 +59,11 @@ import {
   isRectanguloidElement,
   isTextElement,
 } from "./typeChecks";
+import { 
+  getElementAnchorPoints,
+  getClosestAnchorPoint,
+  type AnchorPoint,
+} from "./anchorPoints";
 
 import { aabbForElement, elementCenterPoint } from "./bounds";
 import { updateElbowArrowPoints } from "./elbowArrow";
@@ -722,6 +727,24 @@ const calculateFocusAndGap = (
     elementsMap,
   );
 
+  // Check if the edge point is close to any anchor point
+  const snapDistance = 20; // pixels
+  const closestAnchor = getClosestAnchorPoint(hoveredElement, edgePoint, snapDistance);
+  
+  if (closestAnchor) {
+    // If we're near an anchor point, use it for more precise binding
+    return {
+      focus: determineFocusDistance(
+        hoveredElement,
+        elementsMap,
+        adjacentPoint,
+        closestAnchor.point,
+      ),
+      gap: Math.max(1, distanceToElement(hoveredElement, elementsMap, closestAnchor.point)),
+    };
+  }
+
+  // Fallback to original calculation
   return {
     focus: determineFocusDistance(
       hoveredElement,
